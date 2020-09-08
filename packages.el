@@ -50,3 +50,4 @@
 ;(unpin! t)
 
 (package! sage-shell-mode)
+(package! ox-epub)
