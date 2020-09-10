@@ -88,3 +88,5 @@
 (add-hook! 'latex-mode-hook 'outline-minor-mode)
 
 (global-set-key (kbd "C-c b") 'buffer-menu)
+;; test
+(global-set-key (kbd "C-c c") 'buffer-menu)
