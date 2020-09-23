@@ -30,6 +30,13 @@
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/Dropbox/Orgzly/")
 
+(after! org
+  (setq org-capture-templates
+      '(("i" "input" entry (file "~/Dropbox/Orgzly/Eingang.org")
+         "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n" :empty-lines 1)
+        ("b" "bookmark" entry (file "~/Dropbox/Orgzly/Lesezeichen.org")
+         "* [[%x][%?]] :Link:\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n" :empty-lines 1))))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)

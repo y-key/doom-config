@@ -50,4 +50,6 @@
 ;(unpin! t)
 
 (package! sage-shell-mode)
+(package! ob-sagemath)
 (package! ox-epub)
+(package! gnuplot)
