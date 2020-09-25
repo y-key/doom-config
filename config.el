@@ -88,8 +88,12 @@
        :desc "comment" "c" #'comment-region
        :desc "uncomment" "u" #'uncomment-region)
       (:prefix-map ("b" . "buffer")
-       :desc "menu" "b" #'buffer-menu
-       :desc "eval" "e" #'eval-buffer))
+       :desc "menu" "m" #'buffer-menu
+       :desc "eval" "e" #'eval-buffer)
+      (:when (featurep! :lang latex)
+       (:map LaTeX-mode-map
+        :localleader
+        :desc "svg" "s" #'ykey-latex-to-svg)))
 
 ;; always turn on outline-minor-mode in latex-mode
 (add-hook! 'latex-mode-hook 'outline-minor-mode)
@@ -97,3 +101,13 @@
 (global-set-key (kbd "C-c b") 'buffer-menu)
 ;; test
 (global-set-key (kbd "C-c c") 'buffer-menu)
+
+(defun ykey-latex-to-svg ()
+  (interactive)
+  (let ((file
+       (file-name-sans-extension
+        (file-name-nondirectory
+         (buffer-file-name)))))
+  (shell-command (concat "latex " file))
+  (shell-command (concat "dvisvgm " file)))
+  (kill-buffer "*Shell Command Output*"))
