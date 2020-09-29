@@ -89,8 +89,9 @@
        :desc "uncomment" "u" #'uncomment-region)
       (:prefix-map ("b" . "buffer")
        :desc "menu" "m" #'buffer-menu
-       :desc "eval" "e" #'eval-buffer)
-      (:when (featurep! :lang latex)
+       :desc "eval" "e" #'eval-buffer))
+
+(map! (:when (featurep! :lang latex)
        (:map LaTeX-mode-map
         :localleader
         :desc "svg" "s" #'ykey-latex-to-svg)))
@@ -105,9 +106,20 @@
 (defun ykey-latex-to-svg ()
   (interactive)
   (let ((file
-       (file-name-sans-extension
-        (file-name-nondirectory
-         (buffer-file-name)))))
-  (shell-command (concat "latex " file))
-  (shell-command (concat "dvisvgm " file)))
-  (kill-buffer "*Shell Command Output*"))
+         (concat "\""
+                 (file-name-sans-extension
+                  (file-name-nondirectory
+                   (buffer-file-name)))
+                 "\"")))
+  (call-process-shell-command "latex" nil nil nil file)
+  (call-process-shell-command "dvisvgm" nil nil nil file)
+  (ykey-revert-file-buffers)))
+
+(defun ykey-revert-file-buffers ()
+  (interactive)
+  (let (file)
+    (dolist (buf (buffer-list))
+      (setq file (buffer-file-name buf))
+      (when (and file (file-readable-p file))
+        (with-current-buffer buf
+          (with-demoted-errors "Error: %S" (revert-buffer t t)))))))
