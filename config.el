@@ -89,12 +89,18 @@
        :desc "uncomment" "u" #'uncomment-region)
       (:prefix-map ("b" . "buffer")
        :desc "menu" "m" #'buffer-menu
-       :desc "eval" "e" #'eval-buffer))
+       :desc "eval" "e" #'eval-buffer
+       :desc "other" "o" #'ykey-switch-to-other-buffer))
 
 (map! (:when (featurep! :lang latex)
        (:map LaTeX-mode-map
         :localleader
-        :desc "svg" "s" #'ykey-latex-to-svg)))
+        :desc "svg" "s" #'ykey-latex-to-svg
+        :desc "shell-escape" "e" #'ykey-pdflatex-compile-with-shell-escape)))
+
+(map! (:map dired-mode-map
+       :localleader
+       :desc "open" "o" #'ykey-dired-open-externally))
 
 ;; always turn on outline-minor-mode in latex-mode
 (add-hook! 'latex-mode-hook 'outline-minor-mode)
@@ -105,6 +111,7 @@
 
 (defun ykey-latex-to-svg ()
   (interactive)
+  (save-buffer)
   (let ((file
          (concat "\""
                  (file-name-sans-extension
@@ -113,13 +120,37 @@
                  "\"")))
   (call-process-shell-command "latex" nil nil nil file)
   (call-process-shell-command "dvisvgm" nil nil nil file)
-  (ykey-revert-file-buffers)))
+  (ykey-revert-file-buffers (lambda (x)
+                              (string= (file-name-extension x)
+                                       "svg")))))
 
-(defun ykey-revert-file-buffers ()
+(defun ykey-revert-file-buffers (predicate)
   (interactive)
   (let (file)
     (dolist (buf (buffer-list))
       (setq file (buffer-file-name buf))
-      (when (and file (file-readable-p file))
+      (when (and file (file-readable-p file) (funcall predicate file))
         (with-current-buffer buf
           (with-demoted-errors "Error: %S" (revert-buffer t t)))))))
+
+(defun ykey-pdflatex-compile-with-shell-escape ()
+  (interactive)
+  (let ((file (concat "\"" (buffer-file-name) "\"")))
+    (call-process-shell-command "pdflatex" nil nil nil "--shell-escape" file)))
+
+(defun ykey-switch-to-other-buffer ()
+  (interactive)
+  (switch-to-buffer (other-buffer)))
+
+(defun ykey-dired-open-externally ()
+  (interactive)
+  (if (string-equal major-mode "dired-mode")
+      (let ((fname (dired-get-filename)))
+        (ykey-open-externally fname))))
+
+(defun ykey-open-externally (fname)
+  (interactive)
+  (message "test")
+  (message fname)
+  (let ((process-connection-type nil))
+    (start-process "" nil "xdg-open" fname)))
