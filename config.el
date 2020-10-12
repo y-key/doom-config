@@ -96,7 +96,8 @@
        (:map LaTeX-mode-map
         :localleader
         :desc "svg" "s" #'ykey-latex-to-svg
-        :desc "shell-escape" "e" #'ykey-pdflatex-compile-with-shell-escape)))
+        :desc "shell-escape" "e" #'ykey-pdflatex-compile-with-shell-escape
+        :desc "view" "v" #' ykey-latex-view-pdf)))
 
 (map! (:map dired-mode-map
        :localleader
@@ -135,8 +136,18 @@
 
 (defun ykey-pdflatex-compile-with-shell-escape ()
   (interactive)
+  (save-buffer)
   (let ((file (concat "\"" (buffer-file-name) "\"")))
     (call-process-shell-command "pdflatex" nil nil nil "--shell-escape" file)))
+
+(defun ykey-latex-view-pdf ()
+  (interactive)
+  (let ((file
+         (concat
+                 (file-name-sans-extension
+                  (buffer-file-name))
+                 ".pdf")))
+    (ykey-open-externally file)))
 
 (defun ykey-switch-to-other-buffer ()
   (interactive)
@@ -150,7 +161,5 @@
 
 (defun ykey-open-externally (fname)
   (interactive)
-  (message "test")
-  (message fname)
   (let ((process-connection-type nil))
     (start-process "" nil "xdg-open" fname)))
