@@ -69,6 +69,12 @@
 ;; in dired copy and move to dir in next dired buffer
 (setq dired-dwim-target t)
 
+;; hide details such as ownership or permissions
+(use-package! dired
+  :hook (dired-mode . dired-hide-details-mode)
+  :config (setq dired-listing-switches "-l --group-directories-first"
+                dired-hide-details-hide-symlink-targets t))
+
 
 (map! :leader
       (:prefix-map ("j" . "folding")
@@ -92,12 +98,18 @@
        :desc "eval" "e" #'eval-buffer
        :desc "other" "o" #'ykey-switch-to-other-buffer))
 
+
 (map! (:when (featurep! :lang latex)
        (:map LaTeX-mode-map
         :localleader
         :desc "svg" "s" #'ykey-latex-to-svg
         :desc "shell-escape" "e" #'ykey-pdflatex-compile-with-shell-escape
-        :desc "view" "v" #' ykey-latex-view-pdf)))
+        :desc "view" "v" #'ykey-latex-view-pdf
+        (:prefix-map ("u" . "umlauts")
+         :desc "umlaut o" "o" #'ykey-latex-insert-umlaut-o
+         :desc "umlaut u" "u" #'ykey-latex-insert-umlaut-u
+         :desc "umlaut a" "a" #'ykey-latex-insert-umlaut-a
+         :desc "umlaut s" "s" #'ykey-latex-insert-umlaut-s))))
 
 (map! (:map dired-mode-map
        :localleader
@@ -163,3 +175,20 @@
   (interactive)
   (let ((process-connection-type nil))
     (start-process "" nil "xdg-open" fname)))
+
+
+(defun ykey-latex-insert-umlaut-o ()
+  (interactive)
+  (insert "\\\"o"))
+
+(defun ykey-latex-insert-umlaut-a ()
+  (interactive)
+  (insert "\\\"a"))
+
+(defun ykey-latex-insert-umlaut-u ()
+  (interactive)
+  (insert "\\\"u"))
+
+(defun ykey-latex-insert-umlaut-s ()
+  (interactive)
+  (insert "{\\ss}"))
