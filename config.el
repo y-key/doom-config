@@ -104,12 +104,7 @@
         :localleader
         :desc "svg" "s" #'ykey-latex-to-svg
         :desc "shell-escape" "e" #'ykey-pdflatex-compile-with-shell-escape
-        :desc "view" "v" #'ykey-latex-view-pdf
-        (:prefix-map ("u" . "umlauts")
-         :desc "umlaut o" "o" #'ykey-latex-insert-umlaut-o
-         :desc "umlaut u" "u" #'ykey-latex-insert-umlaut-u
-         :desc "umlaut a" "a" #'ykey-latex-insert-umlaut-a
-         :desc "umlaut s" "s" #'ykey-latex-insert-umlaut-s))))
+        :desc "view" "v" #'ykey-latex-view-pdf)))
 
 (map! (:map dired-mode-map
        :localleader
@@ -176,19 +171,41 @@
   (let ((process-connection-type nil))
     (start-process "" nil "xdg-open" fname)))
 
-
-(defun ykey-latex-insert-umlaut-o ()
+(defun ykey-dired-pdf-scale-to-a4 ()
   (interactive)
-  (insert "\\\"o"))
+  (if (string-equal major-mode "dired-mode")
+      (ykey-pdf-compress (ykey-pdf-scale-to-a4 (dired-get-filename)))))
 
-(defun ykey-latex-insert-umlaut-a ()
+(defun ykey-pdf-scale-to-a4 (file)
   (interactive)
-  (insert "\\\"a"))
+  (message file)
+  (let* ((quoted-in-file (concat "\"" file "\""))
+         (file-sans-ext (file-name-sans-extension file))
+         (out-file (concat file-sans-ext " - resized.pdf"))
+         (quoted-out-file (concat "\"" out-file "\"")))
+    (message out-file)
+    (call-process-shell-command
+     "pdfjam" nil nil nil "--outfile" quoted-out-file "--paper a4paper" quoted-in-file)
+    out-file))
 
-(defun ykey-latex-insert-umlaut-u ()
+(defun ykey-pdf-compress (file)
   (interactive)
-  (insert "\\\"u"))
+  (let* ((quoted-in-file (concat "\"" file "\""))
+         (file-sans-ext (file-name-sans-extension file))
+         (out-file (concat file-sans-ext " - compressed.pdf"))
+         (quoted-out-file (concat "\"" out-file "\"")))
+    (message quoted-out-file)
+    (call-process-shell-command
+     "gs" nil nil nil
+     "-sDEVICE=pdfwrite"
+     "-dCompatibilityLevel=1.5"
+     "-dPDFSETTINGS=/screen"
+     "-dNOPAUSE"
+     "-dQUIET"
+     "-dBATCH"
+     (concat "-sOutputFile="
+             quoted-out-file)
+     quoted-in-file)))
 
-(defun ykey-latex-insert-umlaut-s ()
-  (interactive)
-  (insert "{\\ss}"))
+  ;(let ((file (concat "\"" (buffer-file-name) "\"")))
+  ;  (call-process-shell-command "pdflatex" nil nil nil "--shell-escape" file)))
