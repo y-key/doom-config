@@ -108,7 +108,8 @@
 
 (map! (:map dired-mode-map
        :localleader
-       :desc "open" "o" #'ykey-dired-open-externally))
+       :desc "open" "o" #'ykey-dired-open-externally
+       :desc "compress" "c" #'ykey-dired-pdf-scale-and-compress))
 
 ;; always turn on outline-minor-mode in latex-mode
 (add-hook! 'latex-mode-hook 'outline-minor-mode)
@@ -171,10 +172,17 @@
   (let ((process-connection-type nil))
     (start-process "" nil "xdg-open" fname)))
 
-(defun ykey-dired-pdf-scale-to-a4 ()
+(defun ykey-dired-pdf-scale-and-compress ()
   (interactive)
   (if (string-equal major-mode "dired-mode")
-      (ykey-pdf-compress (ykey-pdf-scale-to-a4 (dired-get-filename)))))
+      (mapcar 'ykey-pdf-scale-and-compress (dired-get-marked-files)))
+  (message "finished"))
+
+(defun ykey-pdf-scale-and-compress (file)
+  (interactive)
+  (let ((scaled-file (ykey-pdf-scale-to-a4 file)))
+    (ykey-pdf-compress scaled-file)
+    (delete-file scaled-file)))
 
 (defun ykey-pdf-scale-to-a4 (file)
   (interactive)
@@ -206,6 +214,3 @@
      (concat "-sOutputFile="
              quoted-out-file)
      quoted-in-file)))
-
-  ;(let ((file (concat "\"" (buffer-file-name) "\"")))
-  ;  (call-process-shell-command "pdflatex" nil nil nil "--shell-escape" file)))
